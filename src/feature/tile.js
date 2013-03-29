@@ -1,16 +1,16 @@
-(function() {
+(function(exports) {
 	/**
 	 * @class
 	 * @constructor
 	 * @name Tile
 	 */	
-	Tile = function(option) {
+	var Tile = exports.Tile = function(option) {
 		this.width = option.width;
 		this.height = option.height;
-		this.marginX = option.marginX;
-		this.marginY = option.marginY;
-		this.fWidth = option.width + option.marginX * 2;
-		this.fHeight = option.height + option.marginY * 2;
+		this.paddingX = option.paddingX;
+		this.paddingY = option.paddingY;
+		this.fWidth = option.width + option.paddingX * 2;
+		this.fHeight = option.height + option.paddingY * 2;
 	}
 
 
