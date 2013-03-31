@@ -7,6 +7,24 @@
 		this.merge(option);
 	}
 
+	/**
+	 * @function
+	 * @public
+	 */
+	Style.getBorder = function(str) {
+		var tmp;
+
+		if (typeof str != "string") {
+			return str;
+		}
+		tmp = str.split(" ");
+		return {
+			borderWidth: tmp[0],
+			borderStyle: tmp[1],
+			borderColor: tmp[2]
+		}
+	};
+
 	Csprite.extend(Style.prototype, {
 		/**
 		 * @function

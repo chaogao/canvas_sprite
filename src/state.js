@@ -31,7 +31,16 @@
 		 * @public
 		 */
 		start: function() {
-			this.runnerStack[0]();
+			var self = this,
+				index = 0,
+				next;
+
+			next = function() {
+				index++;
+				self.runnerStack[index](next);
+			};
+
+			this.runnerStack[index](next);
 		}
 	});
 

@@ -14,6 +14,7 @@ module.exports = function(grunt) {
                         'src/style.js',
 
                         'src/feature.js',
+                        'src/feature/text.js',
                         'src/feature/image.js',
                         'src/feature/grid.js',
                         'src/feature/tile.js',

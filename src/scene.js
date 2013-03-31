@@ -82,6 +82,14 @@
 		 * @function
 		 * @public
 		 */
+		removeFeature: function(feature) {
+			this.featuresContainer.remove(feature);
+		},
+
+		/**
+		 * @function
+		 * @public
+		 */
 		update: function() {
 			this.featuresContainer.update();
 		},

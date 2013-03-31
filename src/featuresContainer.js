@@ -17,6 +17,18 @@
 
 		/**
 		 * @function
+		 * @public
+		 */
+		remove: function(feature) {
+			var index = this.features.indexOf(feature);
+
+			if (index >= 0) {
+				this.features.splice(index, 1);
+			}
+		},
+
+		/**
+		 * @function
 		 * @private
 		 */
 		valid: function(feature) {

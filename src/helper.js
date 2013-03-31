@@ -24,4 +24,15 @@
 		}
 	}
 
+	/**
+	 * @function
+	 * @public
+	 */
+	Helper.centerPosition = function(scene) {
+		return {
+			x: parseInt(scene.canvas.width / 2),
+			y: parseInt(scene.canvas.height / 2)
+		}
+	}
+
 })(Csprite);

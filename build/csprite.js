@@ -3392,6 +3392,14 @@ if ( ! String.prototype.trimLeft)  {
 		 * @function
 		 * @public
 		 */
+		removeFeature: function(feature) {
+			this.featuresContainer.remove(feature);
+		},
+
+		/**
+		 * @function
+		 * @public
+		 */
 		update: function() {
 			this.featuresContainer.update();
 		},
@@ -3419,96 +3427,135 @@ if ( ! String.prototype.trimLeft)  {
 
 })(Csprite);
 (function(exports) {
-	/**
-	 * @class
-	 * @constructor
-	 */
-	var Render = exports.Render = function(scene) {
-		this.scene = scene;
-		this.canvas = scene.canvas;
-		this.context = scene.canvas.getContext("2d");
-	}
+    /**
+    * @class
+    * @constructor
+    */
+    var Render = exports.Render = function(scene) {
+      this.scene = scene;
+      this.canvas = scene.canvas;
+      this.context = scene.canvas.getContext("2d");
+    }
 
 
-	Render.Const = {};
-	Render.Const.Stroke = 1;
-	Render.Const.Fill = 2;
-	Render.Const.Reset = 3;
+    Render.Const = {};
+    Render.Const.Stroke = 1;
+    Render.Const.Fill = 2;
+    Render.Const.Reset = 3;
 
 
-	Csprite.extend(Render.prototype, {
-		/**
-		 * @function
-		 */
-		redraw: function() {
-			var self = this,
-				features = this.scene.getFeatures();
+    Csprite.extend(Render.prototype, {
+        /**
+         * @function
+         * @public
+         */
+        redraw: function() {
+            var self = this,
+                features = this.scene.getFeatures();
 
-			features.forEach(function(feature) {
-				self.drawFeature(feature);
-			});
-		},
+            this.reset();
+            features.forEach(function(feature) {
+                self.drawFeature(feature);
+            });
+        },
 
-		/**
-		 * @function
-		 * @private
-		 */
-		setStyle: function(style, type) {
-			if (type == Csprite.Render.Const.Stroke) {
-		        this.context.lineWidth = style['borderWidth'];
-    	        this.context.strokeStyle = style['borderColor'];
-			} 
-			if (type == Csprite.Render.Const.Fill) {
-				this.context.fillStyle = style['backgroundColor'];
-			}
-			this.context.globalAlpha = style['opacity'];
-			if (type == Csprite.Render.Const.Reset) {
-				this.context.globalAlpha = 1;
-				this.context.lineWidth = 1;
-			}
-		},
+        /**
+         * @function
+         * @private
+         */
+        reset: function() {
+            this.canvas.width = this.canvas.width;
+            this.canvas.height = this.canvas.height;
+        },
 
-		/**
-		 * @function
-		 * @private
-		 */
-		drawFeature: function(feature) {
-			switch (feature.type) {
-				case "Image":
-					this.drawFeatureImage(feature);
-					break;
-			}
-		},
+        /**
+         * @function
+         * @private
+         */
+        setStyle: function(style, type) {
+            this.context.globalAlpha = style['opacity'];
 
-		/**
-		 * @function
-		 * @private drawFeatureImage
-		 */
-		drawFeatureImage: function(feature) {
-			var self = this,
-				style = feature.style,
-				img;
+            if (type == Csprite.Render.Const.Stroke && style['border']) {
+                this.context.lineWidth = style['border']['borderWidth'];
+                this.context.strokeStyle = style['border']['borderColor'];
+            } 
+            if (type == Csprite.Render.Const.Fill) {
+                this.context.fillStyle = style['backgroundColor'];
+            }
+            if (type == Csprite.Render.Const.Reset) {
+                this.context.globalAlpha = 1;
+                this.context.lineWidth = 1;
+            }
 
-			if (feature.image) {
-				img = feature.image;
-				imageLoad();
-			} else {
-				img = new Image();
-				img.onload = imageLoad;
-				img.src = feature.imageSrc;	
-			}
-			
-			function imageLoad() {
-				var width = style.width || img.width,
-					height = style.height || img.height;
+            if (style['font']) {
+                this.context.font = style['font'];
+            }
+            if (style['textAlign']) {
+                this.context.textAlign = style['textAlign'];
+            }
+        },
 
-				self.setStyle(style);
-				self.context.drawImage(img, style.position.x, style.position.y, width, height);
-				self.setStyle(Csprite.Render.Const.Reset);
-			}
-		}
+        /**
+         * @function
+         * @private
+         */
+        drawFeature: function(feature) {
+            switch (feature.type) {
+                case "Image":
+                    this.drawFeatureImage(feature);
+                    break;
+                case "Text":
+                    this.drawFeatureText(feature);
+                    break;
+            }
+        },
 
-	});
+        /**
+         * @function
+         * @private drawFeatureImage
+         */
+        drawFeatureImage: function(feature) {
+            var self = this,
+                style = feature.style,
+                img;
+
+            if (feature.image) {
+                img = feature.image;
+                imageLoad();
+            } else {
+                img = new Image();
+                img.onload = imageLoad;
+                img.src = feature.imageSrc;   
+            }
+
+            function imageLoad() {
+                var width = style.width || img.width,
+                    height = style.height || img.height;
+
+                self.setStyle(style);
+                self.context.drawImage(img, style.position.x, style.position.y, width, height);
+                self.setStyle(Csprite.Render.Const.Reset);
+            }
+        },
+
+        /**
+         * @function
+         * @private
+         */
+        drawFeatureText: function(feature) {
+            var text = feature.text,
+                style = feature.style;
+
+            this.setStyle(style, Csprite.Render.Const.Fill);
+            this.context.fillText(text, style.position.x, style.position.y);
+            if (style.border) {
+                this.setStyle(style, Csprite.Render.Const.Stroke);
+                this.context.strokeText(text, style.position.x, style.position.y);
+            }
+            this.setStyle(Csprite.Render.Const.Reset);
+        }
+
+   });
 
 })(Csprite);
 (function(exports) {
@@ -3525,6 +3572,18 @@ if ( ! String.prototype.trimLeft)  {
 		add: function(feature) {
 			if (this.valid(feature)) {
 				this.features.push(feature);
+			}
+		},
+
+		/**
+		 * @function
+		 * @public
+		 */
+		remove: function(feature) {
+			var index = this.features.indexOf(feature);
+
+			if (index >= 0) {
+				this.features.splice(index, 1);
 			}
 		},
 
@@ -3564,6 +3623,24 @@ if ( ! String.prototype.trimLeft)  {
 	var Style = exports.Style = function(option) {
 		this.merge(option);
 	}
+
+	/**
+	 * @function
+	 * @public
+	 */
+	Style.getBorder = function(str) {
+		var tmp;
+
+		if (typeof str != "string") {
+			return str;
+		}
+		tmp = str.split(" ");
+		return {
+			borderWidth: tmp[0],
+			borderStyle: tmp[1],
+			borderColor: tmp[2]
+		}
+	};
 
 	Csprite.extend(Style.prototype, {
 		/**
@@ -3658,6 +3735,35 @@ if ( ! String.prototype.trimLeft)  {
 
 
 })(Csprite);
+(function(exports) {
+	/**
+	 * @class
+	 * @contructor
+	 */
+	var Text = exports.Text = function(text, option) {
+		var style = new Csprite.Style({
+			backgroundColor: option.backgroundColor,
+			font: option.font,
+			textAlign: option.textAlign,
+			border: Csprite.Style.getBorder(option.border),
+			position: {
+				x: option.position.x,
+				y: option.position.y
+			}
+		});
+
+		Csprite.Feature.apply(this, [style]);
+		this.text = text;
+	}
+
+	Text.prototype = new Csprite.Feature();
+	Text.prototype.contructor = Text;
+
+	Csprite.extend(Text.prototype, {
+		type: "Text"
+	});
+
+})(Csprite.Feature);
 (function(exports) {
 	/**
 	 * @class
@@ -3842,6 +3948,17 @@ if ( ! String.prototype.trimLeft)  {
 		}
 	}
 
+	/**
+	 * @function
+	 * @public
+	 */
+	Helper.centerPosition = function(scene) {
+		return {
+			x: parseInt(scene.canvas.width / 2),
+			y: parseInt(scene.canvas.height / 2)
+		}
+	}
+
 })(Csprite);
 (function(exports) {
 	var Size = exports.Size = function(option) {
@@ -3883,89 +4000,130 @@ if ( ! String.prototype.trimLeft)  {
 		 * @public
 		 */
 		start: function() {
-			this.runnerStack[0]();
+			var self = this,
+				index = 0,
+				next;
+
+			next = function() {
+				index++;
+				self.runnerStack[index](next);
+			};
+
+			this.runnerStack[index](next);
 		}
 	});
 
 })(Csprite);
 (function(exports) {
-	/**
-	 * @class
-	 * @constructor
-	 * @param {object} loadOpts
-	 * @param {Scene} scene
-	 * @param {object} option
-	 * @param {function} cb
-	 */
-	var StateLoader = exports.StateLoader = function(loaderOpts, scene, cb, option) {
-		this.mode = StateLoader.Mode.ToLoad;
-		this.loaderOpts = loaderOpts;
-		
-		this.load();
+    /**
+     * @class
+     * @constructor
+     * @param {object} loadOpts
+     * @param {Scene} scene
+     * @param {object} option
+     * @param {function} cb
+     */
+    var StateLoader = exports.StateLoader = function(loaderOpts, scene, cb, option) {
+        this.mode = StateLoader.Mode.ToLoad;
+        this.loaderOpts = loaderOpts;
+        
+        Csprite.State.call(this, scene, option, cb);
+        
+        this.load();
+        this.start();
+    };
 
-		Csprite.State.call(this, scene, option, cb);
-		this.start();
-	};
-
-	StateLoader.Mode = {};
-	StateLoader.Mode.ToLoad = 0;
-	StateLoader.Mode.Loading = 1;
-	StateLoader.Mode.Loaded = 2;
-
-
-	StateLoader.prototype = new Csprite.State();
-	StateLoader.prototype.constructor = StateLoader;
+    StateLoader.Mode = {};
+    StateLoader.Mode.ToLoad = 0;
+    StateLoader.Mode.Loading = 1;
+    StateLoader.Mode.Loaded = 2;
 
 
-	Csprite.extend(StateLoader.prototype, {
-		/**
-		 * @function
-		 * @private
-		 */
-		load: function() { 
-			var self = this,
-				loaderOpts = this.loaderOpts,
-				resources = this.loaderOpts.resources;
-
-			this.mode = StateLoader.Mode.Loading;
-			resources.forEach(function(resource, index) {
-				var img = new Image();
-				img.onload = function () {
-					self.onload({
-						img: img,
-						index: img.index
-					});
-				}
-				img.src = resource.src;
-				img.index = index;
-			});
-		},
-
-		/**
-		 * @function
-		 * @private
-		 */
-		onload: function(result) {
-			var imgF;
-
-			imgF  = new Csprite.Feature.Image(result.img, {
-				position: Csprite.Helper.calcPostion(this.scene, result.index)
-			});
-			imgF.addAnimation(new Csprite.Animation.Opacity());
-			this.scene.addFeature(imgF);
-		},
-
-		/**
-		 * @function
-		 * @private
-		 */
-		run: function() {
-			this.scene.update();
-			this.scene.rendering();
-			requestAnimFrame(this.run.bind(this));
-		}
+    StateLoader.prototype = new Csprite.State();
+    StateLoader.prototype.constructor = StateLoader;
 
 
-	});
+    Csprite.extend(StateLoader.prototype, {
+        /**
+         * @function
+         * @private
+         */
+        load: function() { 
+            var self = this,
+            	loadedCount = 0,
+                loaderOpts = this.loaderOpts,
+                resources = this.loaderOpts.resources;
+
+            this.mode = StateLoader.Mode.Loading;
+
+            resources.forEach(function(resource, index) {
+                var img = new Image();
+                img.onload = function () {
+                    self.onload({
+                        img: img,
+                        index: img.index
+                    });
+                    loadedCount++;
+                    if (loadedCount == (resources.length - 1)) {
+                    	self.mode = StateLoader.Mode.Loaded;
+                    }
+                }
+                img.src = resource.src;
+                img.index = index;
+            });
+        },
+
+        /**
+         * @function
+         * @private
+         */
+        onload: function(result) {
+            var imgF;
+
+            imgF  = new Csprite.Feature.Image(result.img, {
+                position: Csprite.Helper.calcPostion(this.scene, result.index)
+            });
+            imgF.addAnimation(new Csprite.Animation.Opacity());
+            this.scene.addFeature(imgF);
+        },
+
+        /**
+         * @function
+         * @private
+         */
+        setup: function(next) {
+        	this.loading = new Csprite.Feature.Text("Loading......", {
+        		backgroundColor: "red",
+        		textAlign: "center",
+        		font: "48pt Helvetica",
+        		border: "2px solid black",
+        		position: Csprite.Helper.centerPosition(this.scene)
+        	});
+        	this.scene.addFeature(this.loading);
+        	next();
+        },
+
+        /**
+         * @function
+         * @private
+         */
+        run: function(next) {
+            this.scene.update();
+            this.scene.rendering();
+            if (this.mode == StateLoader.Mode.Loaded && this.loading) {
+            	this.scene.removeFeature(this.loading);
+            	delete this["loading"];
+            }
+            requestAnimFrame(this.run.bind(this, next));
+        },
+
+        /**
+         * @function
+         * @private
+         */
+        end: function() {
+        }
+
+    });
 
 })(Csprite.State);
