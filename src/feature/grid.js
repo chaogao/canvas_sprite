@@ -2,15 +2,14 @@
 	/**
 	 * @class
 	 * @name Grid
-	 * @param {dom} canvas
+	 * @param {Size} size
 	 * @param {option} option
 	 */
-	var Grid = exports.Grid = function(canvas, option) {
-		var width = canvas.width,
-			height = canvas.height,
+	var Grid = exports.Grid = function(size, option) {
+		var width = size.width,
+			height = size.height,
 			tile = option.tile;
 
-		this.canvas = canvas;
 		this.cols = parseInt(width / tile.fWidth);
 		this.rows = parseInt(height / tile.fHeight);
 

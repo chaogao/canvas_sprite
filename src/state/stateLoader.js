@@ -68,7 +68,7 @@
                 position: Csprite.Helper.calcPostion(this.scene, result.index)
             });
             imgF.addAnimation(new Csprite.Animation.Opacity());
-            this.scene.addFeature(imgF);
+            this.scene.mainLayer.addFeature(imgF);
         },
 
         /**
@@ -83,7 +83,7 @@
         		border: "2px solid black",
         		position: Csprite.Helper.centerPosition(this.scene)
         	});
-        	this.scene.addFeature(this.loading);
+        	this.scene.textLayer.addFeature(this.loading);
         	next();
         },
 
@@ -95,7 +95,7 @@
             this.scene.update();
             this.scene.rendering();
             if (this.mode == StateLoader.Mode.Loaded && this.loading) {
-            	this.scene.removeFeature(this.loading);
+                this.scene.textLayer.removeFeature(this.loading);
             	delete this["loading"];
             }
             requestAnimFrame(this.run.bind(this, next));

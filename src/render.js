@@ -5,8 +5,6 @@
     */
     var Render = exports.Render = function(scene) {
       this.scene = scene;
-      this.canvas = scene.canvas;
-      this.context = scene.canvas.getContext("2d");
     }
 
 
@@ -23,9 +21,23 @@
          */
         redraw: function() {
             var self = this,
-                features = this.scene.getFeatures();
+                layers = this.scene.getLayers();
 
-            this.reset();
+            layers.forEach(function(layer) {
+                self.redrawLayer(layer);
+            });
+        },
+
+        /**
+         * @function
+         * @private
+         */
+        redrawLayer: function(layer) {
+            var self = this,
+                features = layer.getFeatures();
+
+            this.reset(layer);
+
             features.forEach(function(feature) {
                 self.drawFeature(feature);
             });
@@ -35,7 +47,9 @@
          * @function
          * @private
          */
-        reset: function() {
+        reset: function(layer) {
+            this.canvas = layer.canvas;
+            this.context = layer.canvas.getContext("2d");
             this.canvas.width = this.canvas.width;
             this.canvas.height = this.canvas.height;
         },

@@ -2,117 +2,120 @@
  * @require core 
  */
 (function(exports) {
-	/**
-	 * @class
-	 * @constructor
-	 * @name Csprite.Scene
-	 * @param {object} sceneOpts
- 	 * @param {string} senceOpts.container
-	 * @param {object} senceOpts.tile
-	 * @param {int} senceOpts.title.width
-	 * @param {int} senceOpts.title.height
-	 * @param {int} senceOpts.title.paddingX
-	 * @param {int} senceOpts.title.paddingY
-	 * @param {object} canvasOpts canvas options
-	 * @param {int} canvasOpts.width
-	 * @param {int} canvasOpts.height
-	 * @param {object} loaderOpts options for load resources
-	 */
-	var Scene = exports.Scene = function(sceneOpts, canvasOpts, loaderOpts) {
-		this.sceneOpts = sceneOpts;
-		this.canvasOpts = canvasOpts;
-		this.loaderOpts = loaderOpts;
+    /**
+     * @class
+     * @constructor
+     * @name Csprite.Scene
+     * @param {object} sceneOpts
+     * @param {string} senceOpts.container
+     * @param {object} senceOpts.tile
+     * @param {int} senceOpts.title.width
+     * @param {int} senceOpts.title.height
+     * @param {int} senceOpts.title.paddingX
+     * @param {int} senceOpts.title.paddingY
+     * @param {object} canvasOpts canvas options
+     * @param {int} canvasOpts.width
+     * @param {int} canvasOpts.height
+     * @param {object} loaderOpts options for load resources
+     */
+    var Scene = exports.Scene = function(sceneOpts, canvasOpts, loaderOpts) {
+        this.sceneOpts = sceneOpts;
+        this.canvasOpts = canvasOpts;
+        this.loaderOpts = loaderOpts;
 
-		this.size = new Csprite.Helper.Size(canvasOpts);
-		this.container = document.getElementById(sceneOpts.container);
-		this.canvas = this.createCanvas();
-		
-		this.render = new Csprite.Render(this);
-		this.featuresContainer = new Csprite.FeaturesContainer(this);
+        this.container = document.getElementById(sceneOpts.container);
+        this.layersContainer = new Csprite.LayersContainer(this);
+        this.render = new Csprite.Render(this);
 
-		this.initScene();
-	}
+        this.size = new Csprite.Helper.Size(canvasOpts);
+        this.tile = new Csprite.Feature.Tile(sceneOpts.tile);
+        this.grid = new Csprite.Feature.Grid(this.size, {
+            tile: this.tile
+        });
 
-	Csprite.extend(Scene.prototype, {
-		/**
-		 * @function
-		 * @private
-		 */
-		createCanvas: function() {
-			var canvas = document.createElement("canvas");
+        this.generateLayers();
+        this.loader = new Csprite.State.StateLoader(this.loaderOpts, this, this.loaderFinish.bind(this));
+    }
 
-			canvas.width = this.size.width;
-			canvas.height = this.size.height;
-			this.container.appendChild(canvas);
-			return canvas;
-		},
+    Csprite.extend(Scene.prototype, {
+        /**
+         * @function
+         * @private
+         * @description generate three base layers in scene
+         */
+        generateLayers: function() {
+            var canvasOpts = this.canvasOpts;
 
-		/**
-		 * @function
-		 * @private
-		 */
-		initScene: function() {
-			var sceneOpts = this.sceneOpts;
-			
-			this.tile = new Csprite.Feature.Tile(sceneOpts.tile);
-			this.grid = new Csprite.Feature.Grid(this.canvas, {
-				tile: this.tile
-			});
-			this.loader = new Csprite.State.StateLoader(this.loaderOpts, this, this.loaderFinish.bind(this));
-		},
-
-		/**
-		 * @function
-		 * @public
-		 */
-		loaderFinish: function() {
+            this.backgroundLayer = new Csprite.Layer({
+                name: "base-backgroundLayer",
+                canvasOpts: canvasOpts
+            });
+            this.addLayer(this.backgroundLayer);
 
 
-		},
+            this.mainLayer = new Csprite.Layer({
+                name: "base-mainLayer",
+                canvasOpts: canvasOpts
+            });
+            this.addLayer(this.mainLayer);
 
-		/**
-		 * @function
-		 * @public
-		 */
-		addFeature: function(feature) {
-			this.featuresContainer.add(feature);
-		},
+            this.textLayer = new Csprite.Layer({
+                name: "base-textLayer",
+                canvasOpts: canvasOpts
+            });
+            this.addLayer(this.textLayer);
+        },
 
-		/**
-		 * @function
-		 * @public
-		 */
-		removeFeature: function(feature) {
-			this.featuresContainer.remove(feature);
-		},
+        /**
+         * @function
+         * @public
+         * @param {Layer} layer
+         */
+        addLayer: function(layer) {
+            this.layersContainer.addLayer(layer);
+        },
 
-		/**
-		 * @function
-		 * @public
-		 */
-		update: function() {
-			this.featuresContainer.update();
-		},
+        /**
+         * @function
+         * @public
+         * @param {String} name
+         */
+        getLayer: function(name) {
+            this.layersContainer.getByName(name);
+        },
 
-		/**
-		 * @function
-		 * @public
-		 */
-		rendering: function() {
-			this.render.redraw();
-		},
-
-		/**
-		 * @function
-		 * @public
-		 */
-		getFeatures: function() {
-			return this.featuresContainer.features;
-		}
+        /**
+         * @function
+         * @public
+         */
+        loaderFinish: function() {
 
 
-	});
+        },
 
+        /**
+         * @function
+         * @public
+         */
+        update: function() {
+            this.layersContainer.update();
+        },
 
+        /**
+         * @function
+         * @public
+         */
+        rendering: function() {
+            this.render.redraw();
+        },
 
+        /**
+         * @function
+         * @public
+         */
+        getLayers: function() {
+            return this.layersContainer.getSortedLayers();
+        }
+
+    });
 })(Csprite);

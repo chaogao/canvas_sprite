@@ -11,6 +11,8 @@ module.exports = function(grunt) {
                         'src/scene.js',
                         'src/render.js',
                         'src/featuresContainer.js',
+                        'src/layersContainer.js',
+                        'src/layer.js',
                         'src/style.js',
 
                         'src/feature.js',
