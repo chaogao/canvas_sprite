@@ -3268,7 +3268,7 @@ if ( ! String.prototype.trimLeft)  {
 	};
 
 	Csprite.Const = {
-		FPS: 30
+		FPS: 24
 	};
 
 	/**
@@ -3347,6 +3347,8 @@ if ( ! String.prototype.trimLeft)  {
 
         this.generateLayers();
         this.loader = new Csprite.State.StateLoader(this.loaderOpts, this, this.loaderFinish.bind(this));
+
+        this.render.start(this.loader);
     }
 
     Csprite.extend(Scene.prototype, {
@@ -3414,8 +3416,7 @@ if ( ! String.prototype.trimLeft)  {
          * @public
          */
         loaderFinish: function() {
-
-
+            console.log("loaderFinish");
         },
 
         /**
@@ -3424,14 +3425,6 @@ if ( ! String.prototype.trimLeft)  {
          */
         update: function() {
             this.layersContainer.update();
-        },
-
-        /**
-         * @function
-         * @public
-         */
-        rendering: function() {
-            this.render.redraw();
         },
 
         /**
@@ -3453,6 +3446,12 @@ if ( ! String.prototype.trimLeft)  {
         this.scene = scene;
         this.canvas = this.scene.canvas;
         this.context = this.scene.context;
+        this.state = "";
+
+        this.interval = 1000 / Csprite.Const.FPS;
+        this.now = "";
+        this.then = Date.now();
+        this.loop();
     }
 
 
@@ -3463,6 +3462,49 @@ if ( ! String.prototype.trimLeft)  {
 
 
     Csprite.extend(Render.prototype, {
+        /**
+         * @function
+         * @start
+         * @param {State} 继承自 State 的实例，用于开始一个新的state
+         */
+        start: function(state) {
+            state.next();
+        },
+
+        /**
+         * @function
+         * @private
+         */
+        setDrawCb: function(cb) {
+            this.cb = cb;
+        },
+
+        /**
+         * @function
+         * @private
+         * @description 场景的主轮训渲染，如果有 this.cb 则满足渲染条件时会执行
+         * loop 并不知道自己处于哪个 state ，只会进行场景的更新、执行 this.cb，最后重绘
+         */
+        loop: function() {
+            var state = this.state,
+                cb = this.cb,
+                delta;
+
+            this.now = Date.now();
+            delta = this.now - this.then;
+            requestAnimFrame(this.loop.bind(this, cb));
+
+            if (delta > this.interval || (cb && !cb.excuted)) {
+                this.scene.update();
+                if (cb) {
+                    cb();
+                    cb.excuted = true;
+                }
+                this.redraw();
+                this.then = this.now - (delta % this.interval);
+            }
+        },
+
         /**
          * @function
          * @public
@@ -4123,78 +4165,51 @@ if ( ! String.prototype.trimLeft)  {
 	
 })(Csprite.Helper);
 (function(exports) {
-	/**
-	 * @class
-	 * @constructor
-	 * @name State
-	 * @param {Scene} scene
-	 * @param {object} option
-	 * @param {function} option.setup
-	 * @param {function} option.run
-	 * @param {function} option.end
-	 */
-	var State = exports.State = function(scene, option, cb) {
-		var self = this;
+    /**
+     * @class
+     * @constructor
+     * @name State
+     * @param {Scene} scene
+     * @param {object} option
+     * @param {function} option.setup
+     * @param {function} option.run
+     * @param {function} option.end
+     */
+    var State = exports.State = function(scene, option, cb) {
+        var self = this;
 
-		this.scene = scene;
-		this.cb = cb;
-		this.interval = 1000 / Csprite.Const.FPS;
-		this.now = "";
-		this.then = "";
-		this.nextSetp = false;
-		this.setp = 0;
-		Csprite.extend(this, option);
+        this.scene = scene;
+        this.cb = cb;
 
-		this.runnerStack = [];
-		// push runner in stack if exsite
-		[this.setup, this.run, this.end].forEach(function(runner) {
-			if (runner) {
-				self.runnerStack.push(runner.bind(self));
-			}
-		});
-	}
+        this.nextSetp = false;
+        this.setp = 0;
+        Csprite.extend(this, option);
 
-	Csprite.extend(State.prototype, {
-		/**
-		 * @function
-		 * @public
-		 */
-		start: function() {
-			this.then = Date.now();
-			this.nextSetp = false;
-			this.draw(this.runnerStack[this.setp]);
-			this.setp++;
-		},
+        this.runnerStack = [];
+        // push runner in stack if exsite
+        [this.setup, this.run, this.end].forEach(function(runner) {
+            if (runner) {
+                self.runnerStack.push(runner.bind(self));
+            }
+        });
+    }
 
-		/**
-		 * @functin
-		 * @private
-		 * @param {Function} cb
-		 */
-		draw: function(cb) {
-			var delta;
+    Csprite.extend(State.prototype, {
+        /**
+         * @function
+         */
+        next: function() {
+            var render = this.scene.render;
 
-			if (this.nextSetp) {
-				this.start();
-				return;
-			}
-
-			this.now = Date.now();
-			delta = this.now - this.then;
-			requestAnimFrame(this.draw.bind(this, cb));
-			if (delta > this.interval) {
-				cb();
-				this.then = this.now - (delta % this.interval);
-			}
-		},
-
-		/**
-		 * @function
-		 */
-		goNext: function() {
-			this.nextSetp = true;
-		}
-	});
+            if (this.runnerStack[this.setp]) {
+                render.setDrawCb(this.runnerStack[this.setp]);                
+                this.setp++;
+            } else {
+                render.setDrawCb();
+                this.cb();
+            }
+        }
+    });
 
 })(Csprite);
 (function(exports) {
@@ -4209,11 +4224,17 @@ if ( ! String.prototype.trimLeft)  {
     var StateLoader = exports.StateLoader = function(loaderOpts, scene, cb, option) {
         this.mode = StateLoader.Mode.ToLoad;
         this.loaderOpts = loaderOpts;
-        
+        this.loadedCount = 0;
+    
         Csprite.State.call(this, scene, option, cb);
-        
+        this.loading = new Csprite.Feature.Text("Loading", {
+            backgroundColor: "red",
+            textAlign: "center",
+            font: "48pt Helvetica",
+            border: "2px solid black",
+            position: Csprite.Helper.centerPosition(this.scene)
+        });
         this.load();
-        this.start();
     };
 
     StateLoader.Mode = {};
@@ -4221,10 +4242,8 @@ if ( ! String.prototype.trimLeft)  {
     StateLoader.Mode.Loading = 1;
     StateLoader.Mode.Loaded = 2;
 
-
     StateLoader.prototype = new Csprite.State();
     StateLoader.prototype.constructor = StateLoader;
-
 
     Csprite.extend(StateLoader.prototype, {
         /**
@@ -4233,7 +4252,6 @@ if ( ! String.prototype.trimLeft)  {
          */
         load: function() { 
             var self = this,
-            	loadedCount = 0,
                 loaderOpts = this.loaderOpts,
                 resources = this.loaderOpts.resources;
 
@@ -4246,8 +4264,8 @@ if ( ! String.prototype.trimLeft)  {
                         img: img,
                         index: img.index
                     });
-                    loadedCount++;
-                    if (loadedCount == (resources.length - 1)) {
+                    self.loadedCount++;
+                    if (self.loadedCount == (resources.length - 1)) {
                     	self.mode = StateLoader.Mode.Loaded;
                     }
                 }
@@ -4268,6 +4286,7 @@ if ( ! String.prototype.trimLeft)  {
             });
             imgF.addAnimation(new Csprite.Animation.Opacity());
             this.scene.mainLayer.addFeature(imgF);
+            this.loading.text = "Loading(" + this.loadedCount + "/" + this.loaderOpts.resources.length + ")";
         },
 
         /**
@@ -4275,15 +4294,8 @@ if ( ! String.prototype.trimLeft)  {
          * @private
          */
         setup: function() {
-        	this.loading = new Csprite.Feature.Text("Loading......", {
-        		backgroundColor: "red",
-        		textAlign: "center",
-        		font: "48pt Helvetica",
-        		border: "2px solid black",
-        		position: Csprite.Helper.centerPosition(this.scene)
-        	});
         	this.scene.textLayer.addFeature(this.loading);
-        	this.goNext();
+        	this.next();
         },
 
         /**
@@ -4291,11 +4303,10 @@ if ( ! String.prototype.trimLeft)  {
          * @private
          */
         run: function() {
-            this.scene.update();
-            this.scene.rendering();
             if (this.mode == StateLoader.Mode.Loaded && this.loading) {
-                // this.scene.textLayer.removeFeature(this.loading);
-            	// delete this["loading"];
+                this.scene.textLayer.removeFeature(this.loading);
+            	delete this["loading"];
+                this.next();
             }
         },
 
@@ -4304,7 +4315,8 @@ if ( ! String.prototype.trimLeft)  {
          * @private
          */
         end: function() {
-        	this.cb();
+            console.log("end");
+            this.next();
         }
 
     });

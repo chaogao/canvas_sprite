@@ -37,6 +37,8 @@
 
         this.generateLayers();
         this.loader = new Csprite.State.StateLoader(this.loaderOpts, this, this.loaderFinish.bind(this));
+
+        this.render.start(this.loader);
     }
 
     Csprite.extend(Scene.prototype, {
@@ -104,8 +106,7 @@
          * @public
          */
         loaderFinish: function() {
-
-
+            console.log("loaderFinish");
         },
 
         /**
@@ -114,14 +115,6 @@
          */
         update: function() {
             this.layersContainer.update();
-        },
-
-        /**
-         * @function
-         * @public
-         */
-        rendering: function() {
-            this.render.redraw();
         },
 
         /**

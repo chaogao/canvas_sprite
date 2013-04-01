@@ -10,11 +10,17 @@
     var StateLoader = exports.StateLoader = function(loaderOpts, scene, cb, option) {
         this.mode = StateLoader.Mode.ToLoad;
         this.loaderOpts = loaderOpts;
-        
+        this.loadedCount = 0;
+    
         Csprite.State.call(this, scene, option, cb);
-        
+        this.loading = new Csprite.Feature.Text("Loading", {
+            backgroundColor: "red",
+            textAlign: "center",
+            font: "48pt Helvetica",
+            border: "2px solid black",
+            position: Csprite.Helper.centerPosition(this.scene)
+        });
         this.load();
-        this.start();
     };
 
     StateLoader.Mode = {};
@@ -22,10 +28,8 @@
     StateLoader.Mode.Loading = 1;
     StateLoader.Mode.Loaded = 2;
 
-
     StateLoader.prototype = new Csprite.State();
     StateLoader.prototype.constructor = StateLoader;
-
 
     Csprite.extend(StateLoader.prototype, {
         /**
@@ -34,7 +38,6 @@
          */
         load: function() { 
             var self = this,
-            	loadedCount = 0,
                 loaderOpts = this.loaderOpts,
                 resources = this.loaderOpts.resources;
 
@@ -47,8 +50,8 @@
                         img: img,
                         index: img.index
                     });
-                    loadedCount++;
-                    if (loadedCount == (resources.length - 1)) {
+                    self.loadedCount++;
+                    if (self.loadedCount == (resources.length - 1)) {
                     	self.mode = StateLoader.Mode.Loaded;
                     }
                 }
@@ -69,6 +72,7 @@
             });
             imgF.addAnimation(new Csprite.Animation.Opacity());
             this.scene.mainLayer.addFeature(imgF);
+            this.loading.text = "Loading(" + this.loadedCount + "/" + this.loaderOpts.resources.length + ")";
         },
 
         /**
@@ -76,15 +80,8 @@
          * @private
          */
         setup: function() {
-        	this.loading = new Csprite.Feature.Text("Loading......", {
-        		backgroundColor: "red",
-        		textAlign: "center",
-        		font: "48pt Helvetica",
-        		border: "2px solid black",
-        		position: Csprite.Helper.centerPosition(this.scene)
-        	});
         	this.scene.textLayer.addFeature(this.loading);
-        	this.goNext();
+        	this.next();
         },
 
         /**
@@ -92,11 +89,10 @@
          * @private
          */
         run: function() {
-            this.scene.update();
-            this.scene.rendering();
             if (this.mode == StateLoader.Mode.Loaded && this.loading) {
-                // this.scene.textLayer.removeFeature(this.loading);
-            	// delete this["loading"];
+                this.scene.textLayer.removeFeature(this.loading);
+            	delete this["loading"];
+                this.next();
             }
         },
 
@@ -105,7 +101,8 @@
          * @private
          */
         end: function() {
-        	this.cb();
+            console.log("end");
+            this.next();
         }
 
     });

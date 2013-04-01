@@ -7,6 +7,12 @@
         this.scene = scene;
         this.canvas = this.scene.canvas;
         this.context = this.scene.context;
+        this.state = "";
+
+        this.interval = 1000 / Csprite.Const.FPS;
+        this.now = "";
+        this.then = Date.now();
+        this.loop();
     }
 
 
@@ -17,6 +23,49 @@
 
 
     Csprite.extend(Render.prototype, {
+        /**
+         * @function
+         * @start
+         * @param {State} 继承自 State 的实例，用于开始一个新的state
+         */
+        start: function(state) {
+            state.next();
+        },
+
+        /**
+         * @function
+         * @private
+         */
+        setDrawCb: function(cb) {
+            this.cb = cb;
+        },
+
+        /**
+         * @function
+         * @private
+         * @description 场景的主轮训渲染，如果有 this.cb 则满足渲染条件时会执行
+         * loop 并不知道自己处于哪个 state ，只会进行场景的更新、执行 this.cb，最后重绘
+         */
+        loop: function() {
+            var state = this.state,
+                cb = this.cb,
+                delta;
+
+            this.now = Date.now();
+            delta = this.now - this.then;
+            requestAnimFrame(this.loop.bind(this, cb));
+
+            if (delta > this.interval || (cb && !cb.excuted)) {
+                this.scene.update();
+                if (cb) {
+                    cb();
+                    cb.excuted = true;
+                }
+                this.redraw();
+                this.then = this.now - (delta % this.interval);
+            }
+        },
+
         /**
          * @function
          * @public
