@@ -28,6 +28,8 @@
         });
     }
 
+    State.prototype = Object.clone(EventEmitter.prototype);
+
     Csprite.extend(State.prototype, {
         /**
          * @function

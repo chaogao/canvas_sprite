@@ -37,6 +37,9 @@
 
         this.generateLayers();
         this.loader = new Csprite.State.StateLoader(this.loaderOpts, this, this.loaderFinish.bind(this));
+        this.loader.addListener("end", function() {
+            console.log("event fired state end");
+        });
 
         this.render.start(this.loader);
     }

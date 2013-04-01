@@ -6,6 +6,7 @@ module.exports = function(grunt) {
             domop: {
                 src: [
                         'addin/jst.js',
+                        'addin/EventEmitter.js',
 
                         'src/core.js',
                         'src/scene.js',

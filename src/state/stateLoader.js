@@ -23,6 +23,8 @@
         this.load();
     };
 
+
+
     StateLoader.Mode = {};
     StateLoader.Mode.ToLoad = 0;
     StateLoader.Mode.Loading = 1;
@@ -101,7 +103,7 @@
          * @private
          */
         end: function() {
-            console.log("end");
+            this.emitEvent('end');
             this.next();
         }
 
