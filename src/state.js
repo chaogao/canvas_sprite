@@ -14,6 +14,11 @@
 
 		this.scene = scene;
 		this.cb = cb;
+		this.interval = 1000 / Csprite.Const.FPS;
+		this.now = "";
+		this.then = "";
+		this.nextSetp = false;
+		this.setp = 0;
 		Csprite.extend(this, option);
 
 		this.runnerStack = [];
@@ -31,16 +36,39 @@
 		 * @public
 		 */
 		start: function() {
-			var self = this,
-				index = 0,
-				next;
+			this.then = Date.now();
+			this.nextSetp = false;
+			this.draw(this.runnerStack[this.setp]);
+			this.setp++;
+		},
 
-			next = function() {
-				index++;
-				self.runnerStack[index](next);
-			};
+		/**
+		 * @functin
+		 * @private
+		 * @param {Function} cb
+		 */
+		draw: function(cb) {
+			var delta;
 
-			this.runnerStack[index](next);
+			if (this.nextSetp) {
+				this.start();
+				return;
+			}
+
+			this.now = Date.now();
+			delta = this.now - this.then;
+			requestAnimFrame(this.draw.bind(this, cb));
+			if (delta > this.interval) {
+				cb();
+				this.then = this.now - (delta % this.interval);
+			}
+		},
+
+		/**
+		 * @function
+		 */
+		goNext: function() {
+			this.nextSetp = true;
 		}
 	});
 

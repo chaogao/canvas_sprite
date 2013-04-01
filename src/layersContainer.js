@@ -20,22 +20,7 @@
                 index = index || this.index++;
                 layer.setIndex(index);
                 this.layers.push(layer);
-                this.sortLayers();
             }
-        },
-
-        /**
-         * @function
-         * @private
-         */
-        sortLayers: function() {
-            var layers = this.getSortedLayers(),
-                container = this.scene.container;
-
-            container.innerHTML = "";
-            layers.forEach(function(layer) {
-                container.appendChild(layer.canvas);
-            });
         },
 
         /**

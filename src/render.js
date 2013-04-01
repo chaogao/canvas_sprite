@@ -4,7 +4,9 @@
     * @constructor
     */
     var Render = exports.Render = function(scene) {
-      this.scene = scene;
+        this.scene = scene;
+        this.canvas = this.scene.canvas;
+        this.context = this.scene.context;
     }
 
 
@@ -23,6 +25,8 @@
             var self = this,
                 layers = this.scene.getLayers();
 
+            this.reset();
+
             layers.forEach(function(layer) {
                 self.redrawLayer(layer);
             });
@@ -36,8 +40,6 @@
             var self = this,
                 features = layer.getFeatures();
 
-            this.reset(layer);
-
             features.forEach(function(feature) {
                 self.drawFeature(feature);
             });
@@ -47,11 +49,8 @@
          * @function
          * @private
          */
-        reset: function(layer) {
-            this.canvas = layer.canvas;
-            this.context = layer.canvas.getContext("2d");
-            this.canvas.width = this.canvas.width;
-            this.canvas.height = this.canvas.height;
+        reset: function() {
+            this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
         },
 
         /**

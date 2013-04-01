@@ -25,6 +25,8 @@
 
         this.container = document.getElementById(sceneOpts.container);
         this.layersContainer = new Csprite.LayersContainer(this);
+        this.canvas = this.createCanvas();
+        this.context = this.canvas.getContext("2d");
         this.render = new Csprite.Render(this);
 
         this.size = new Csprite.Helper.Size(canvasOpts);
@@ -38,6 +40,19 @@
     }
 
     Csprite.extend(Scene.prototype, {
+        /**
+         * @function
+         * @private
+         */
+        createCanvas: function() {
+            var canvas = document.createElement("canvas");
+
+            canvas.width = this.canvasOpts.width;
+            canvas.height = this.canvasOpts.height;
+            this.container.appendChild(canvas);
+            return canvas;
+        },
+
         /**
          * @function
          * @private

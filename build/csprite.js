@@ -3268,7 +3268,7 @@ if ( ! String.prototype.trimLeft)  {
 	};
 
 	Csprite.Const = {
-		FPS: 60
+		FPS: 30
 	};
 
 	/**
@@ -3335,6 +3335,8 @@ if ( ! String.prototype.trimLeft)  {
 
         this.container = document.getElementById(sceneOpts.container);
         this.layersContainer = new Csprite.LayersContainer(this);
+        this.canvas = this.createCanvas();
+        this.context = this.canvas.getContext("2d");
         this.render = new Csprite.Render(this);
 
         this.size = new Csprite.Helper.Size(canvasOpts);
@@ -3348,6 +3350,19 @@ if ( ! String.prototype.trimLeft)  {
     }
 
     Csprite.extend(Scene.prototype, {
+        /**
+         * @function
+         * @private
+         */
+        createCanvas: function() {
+            var canvas = document.createElement("canvas");
+
+            canvas.width = this.canvasOpts.width;
+            canvas.height = this.canvasOpts.height;
+            this.container.appendChild(canvas);
+            return canvas;
+        },
+
         /**
          * @function
          * @private
@@ -3435,7 +3450,9 @@ if ( ! String.prototype.trimLeft)  {
     * @constructor
     */
     var Render = exports.Render = function(scene) {
-      this.scene = scene;
+        this.scene = scene;
+        this.canvas = this.scene.canvas;
+        this.context = this.scene.context;
     }
 
 
@@ -3454,6 +3471,8 @@ if ( ! String.prototype.trimLeft)  {
             var self = this,
                 layers = this.scene.getLayers();
 
+            this.reset();
+
             layers.forEach(function(layer) {
                 self.redrawLayer(layer);
             });
@@ -3467,8 +3486,6 @@ if ( ! String.prototype.trimLeft)  {
             var self = this,
                 features = layer.getFeatures();
 
-            this.reset(layer);
-
             features.forEach(function(feature) {
                 self.drawFeature(feature);
             });
@@ -3478,11 +3495,8 @@ if ( ! String.prototype.trimLeft)  {
          * @function
          * @private
          */
-        reset: function(layer) {
-            this.canvas = layer.canvas;
-            this.context = layer.canvas.getContext("2d");
-            this.canvas.width = this.canvas.width;
-            this.canvas.height = this.canvas.height;
+        reset: function() {
+            this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
         },
 
         /**
@@ -3654,22 +3668,7 @@ if ( ! String.prototype.trimLeft)  {
                 index = index || this.index++;
                 layer.setIndex(index);
                 this.layers.push(layer);
-                this.sortLayers();
             }
-        },
-
-        /**
-         * @function
-         * @private
-         */
-        sortLayers: function() {
-            var layers = this.getSortedLayers(),
-                container = this.scene.container;
-
-            container.innerHTML = "";
-            layers.forEach(function(layer) {
-                container.appendChild(layer.canvas);
-            });
         },
 
         /**
@@ -3725,24 +3724,10 @@ if ( ! String.prototype.trimLeft)  {
 		this.name = option.name;
 		this.scene = scene;
 		this.featuresContainer = new Csprite.FeaturesContainer(this);
-		this.canvas = this.createCanvas();
 		this.index = 0;
 	}
 
 	Csprite.extend(Layer.prototype, {
-        /**
-         * @function
-         * @private
-         */
-        createCanvas: function() {
-            var canvas = document.createElement("canvas");
-
-            canvas.width = this.option.canvasOpts.width;
-            canvas.height = this.option.canvasOpts.height;
-            canvas.style.cssText = "position: absolute; left: 0px; top: 0px;";
-            return canvas;
-        },
-
 		/**
 		 * @function
 		 * @public
@@ -4153,6 +4138,11 @@ if ( ! String.prototype.trimLeft)  {
 
 		this.scene = scene;
 		this.cb = cb;
+		this.interval = 1000 / Csprite.Const.FPS;
+		this.now = "";
+		this.then = "";
+		this.nextSetp = false;
+		this.setp = 0;
 		Csprite.extend(this, option);
 
 		this.runnerStack = [];
@@ -4170,16 +4160,39 @@ if ( ! String.prototype.trimLeft)  {
 		 * @public
 		 */
 		start: function() {
-			var self = this,
-				index = 0,
-				next;
+			this.then = Date.now();
+			this.nextSetp = false;
+			this.draw(this.runnerStack[this.setp]);
+			this.setp++;
+		},
 
-			next = function() {
-				index++;
-				self.runnerStack[index](next);
-			};
+		/**
+		 * @functin
+		 * @private
+		 * @param {Function} cb
+		 */
+		draw: function(cb) {
+			var delta;
 
-			this.runnerStack[index](next);
+			if (this.nextSetp) {
+				this.start();
+				return;
+			}
+
+			this.now = Date.now();
+			delta = this.now - this.then;
+			requestAnimFrame(this.draw.bind(this, cb));
+			if (delta > this.interval) {
+				cb();
+				this.then = this.now - (delta % this.interval);
+			}
+		},
+
+		/**
+		 * @function
+		 */
+		goNext: function() {
+			this.nextSetp = true;
 		}
 	});
 
@@ -4261,7 +4274,7 @@ if ( ! String.prototype.trimLeft)  {
          * @function
          * @private
          */
-        setup: function(next) {
+        setup: function() {
         	this.loading = new Csprite.Feature.Text("Loading......", {
         		backgroundColor: "red",
         		textAlign: "center",
@@ -4270,21 +4283,20 @@ if ( ! String.prototype.trimLeft)  {
         		position: Csprite.Helper.centerPosition(this.scene)
         	});
         	this.scene.textLayer.addFeature(this.loading);
-        	next();
+        	this.goNext();
         },
 
         /**
          * @function
          * @private
          */
-        run: function(next) {
+        run: function() {
             this.scene.update();
             this.scene.rendering();
             if (this.mode == StateLoader.Mode.Loaded && this.loading) {
-                this.scene.textLayer.removeFeature(this.loading);
-            	delete this["loading"];
+                // this.scene.textLayer.removeFeature(this.loading);
+            	// delete this["loading"];
             }
-            requestAnimFrame(this.run.bind(this, next));
         },
 
         /**

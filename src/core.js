@@ -22,7 +22,7 @@
 	};
 
 	Csprite.Const = {
-		FPS: 60
+		FPS: 30
 	};
 
 	/**

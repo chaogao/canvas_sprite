@@ -14,24 +14,10 @@
 		this.name = option.name;
 		this.scene = scene;
 		this.featuresContainer = new Csprite.FeaturesContainer(this);
-		this.canvas = this.createCanvas();
 		this.index = 0;
 	}
 
 	Csprite.extend(Layer.prototype, {
-        /**
-         * @function
-         * @private
-         */
-        createCanvas: function() {
-            var canvas = document.createElement("canvas");
-
-            canvas.width = this.option.canvasOpts.width;
-            canvas.height = this.option.canvasOpts.height;
-            canvas.style.cssText = "position: absolute; left: 0px; top: 0px;";
-            return canvas;
-        },
-
 		/**
 		 * @function
 		 * @public

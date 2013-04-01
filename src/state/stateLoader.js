@@ -75,7 +75,7 @@
          * @function
          * @private
          */
-        setup: function(next) {
+        setup: function() {
         	this.loading = new Csprite.Feature.Text("Loading......", {
         		backgroundColor: "red",
         		textAlign: "center",
@@ -84,21 +84,20 @@
         		position: Csprite.Helper.centerPosition(this.scene)
         	});
         	this.scene.textLayer.addFeature(this.loading);
-        	next();
+        	this.goNext();
         },
 
         /**
          * @function
          * @private
          */
-        run: function(next) {
+        run: function() {
             this.scene.update();
             this.scene.rendering();
             if (this.mode == StateLoader.Mode.Loaded && this.loading) {
-                this.scene.textLayer.removeFeature(this.loading);
-            	delete this["loading"];
+                // this.scene.textLayer.removeFeature(this.loading);
+            	// delete this["loading"];
             }
-            requestAnimFrame(this.run.bind(this, next));
         },
 
         /**
