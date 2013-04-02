@@ -19,15 +19,15 @@
      * @param {object} loaderOpts options for load resources
      */
     var Scene = exports.Scene = function(sceneOpts, canvasOpts, loaderOpts) {
+        var self = this;
+
         this.sceneOpts = sceneOpts;
         this.canvasOpts = canvasOpts;
         this.loaderOpts = loaderOpts;
 
         this.container = document.getElementById(sceneOpts.container);
         this.layersContainer = new Csprite.LayersContainer(this);
-        this.canvas = this.createCanvas();
-        this.context = this.canvas.getContext("2d");
-        this.render = new Csprite.Render(this);
+        this.render = new Csprite.Render(this, canvasOpts);
 
         this.size = new Csprite.Helper.Size(canvasOpts);
         this.tile = new Csprite.Feature.Tile(sceneOpts.tile);
@@ -36,52 +36,35 @@
         });
 
         this.generateLayers();
-        this.loader = new Csprite.State.StateLoader(this.loaderOpts, this, this.loaderFinish.bind(this));
-        this.loader.addListener("end", function() {
-            console.log("event fired state end");
-        });
 
+        this.loader = new Csprite.State.StateLoader(this.loaderOpts, this, this.loaderFinish.bind(this));
         this.render.start(this.loader);
+
+        this.render.addListener("selectedfeature", this.selectedfeature.bind(this));
     }
 
+    Scene.prototype = Object.clone(EventEmitter.prototype);
+
     Csprite.extend(Scene.prototype, {
-        /**
-         * @function
-         * @private
-         */
-        createCanvas: function() {
-            var canvas = document.createElement("canvas");
-
-            canvas.width = this.canvasOpts.width;
-            canvas.height = this.canvasOpts.height;
-            this.container.appendChild(canvas);
-            return canvas;
-        },
-
         /**
          * @function
          * @private
          * @description generate three base layers in scene
          */
         generateLayers: function() {
-            var canvasOpts = this.canvasOpts;
-
             this.backgroundLayer = new Csprite.Layer({
-                name: "base-backgroundLayer",
-                canvasOpts: canvasOpts
+                name: "base-backgroundLayer"
             });
             this.addLayer(this.backgroundLayer);
 
 
             this.mainLayer = new Csprite.Layer({
-                name: "base-mainLayer",
-                canvasOpts: canvasOpts
+                name: "base-mainLayer"
             });
             this.addLayer(this.mainLayer);
 
             this.textLayer = new Csprite.Layer({
-                name: "base-textLayer",
-                canvasOpts: canvasOpts
+                name: "base-textLayer"
             });
             this.addLayer(this.textLayer);
         },
@@ -98,10 +81,21 @@
         /**
          * @function
          * @public
-         * @param {String} name
+         * @param {Feature} feature
          */
         getLayer: function(name) {
             this.layersContainer.getByName(name);
+        },
+
+        /**
+         * @function
+         * @public
+         */
+        getFeature: function(id) {
+            var layerIndex = parseInt(id / 10000),
+                layer = this.layersContainer.layers[layerIndex];
+
+            return layer.getFeature(id);
         },
 
         /**
@@ -126,6 +120,10 @@
          */
         getLayers: function() {
             return this.layersContainer.getSortedLayers();
+        },
+
+        selectedfeature: function(e) {
+            this.emitEvent("selectedfeature", [e]);
         }
 
     });

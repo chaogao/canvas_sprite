@@ -12,7 +12,6 @@
 	var Layer = exports.Layer = function(option) {
 		this.option = option;
 		this.name = option.name;
-		this.scene = scene;
 		this.featuresContainer = new Csprite.FeaturesContainer(this);
 		this.index = 0;
 	}
@@ -24,6 +23,16 @@
 		 */ 
 		addFeature: function(feature) {
 			this.featuresContainer.add(feature);
+			feature.layer = this;
+			this.generateFeatureId(feature);
+		},
+
+		/**
+		 * @function
+		 * @private
+		 */
+		generateFeatureId: function(feature) {
+			feature.id = this.currentFeatureId++;
 		},
 
 		/**
@@ -45,6 +54,21 @@
 		/**
 		 * @function
 		 * @public
+		 * @param {int} id
+		 */
+		getFeature: function(id) {
+			var features = this.featuresContainer.features;
+
+			for(var i = 0, len = features.length; i < len; i++) {
+				if (features[i].id == id) {
+					return features[i];
+				}
+			}
+		},
+
+		/**
+		 * @function
+		 * @public
 		 */
 		update: function() {
 			this.featuresContainer.update();
@@ -56,6 +80,8 @@
 		 */
 		setIndex: function(index) {
 			this.index = index;
+			this.startFeatureId = 10000 * index; //max featurescount each layer , 10000
+			this.currentFeatureId = this.startFeatureId;
 		}
 
 	});

@@ -3643,15 +3643,15 @@ if ( ! String.prototype.trimLeft)  {
      * @param {object} loaderOpts options for load resources
      */
     var Scene = exports.Scene = function(sceneOpts, canvasOpts, loaderOpts) {
+        var self = this;
+
         this.sceneOpts = sceneOpts;
         this.canvasOpts = canvasOpts;
         this.loaderOpts = loaderOpts;
 
         this.container = document.getElementById(sceneOpts.container);
         this.layersContainer = new Csprite.LayersContainer(this);
-        this.canvas = this.createCanvas();
-        this.context = this.canvas.getContext("2d");
-        this.render = new Csprite.Render(this);
+        this.render = new Csprite.Render(this, canvasOpts);
 
         this.size = new Csprite.Helper.Size(canvasOpts);
         this.tile = new Csprite.Feature.Tile(sceneOpts.tile);
@@ -3660,52 +3660,35 @@ if ( ! String.prototype.trimLeft)  {
         });
 
         this.generateLayers();
-        this.loader = new Csprite.State.StateLoader(this.loaderOpts, this, this.loaderFinish.bind(this));
-        this.loader.addListener("end", function() {
-            console.log("event fired state end");
-        });
 
+        this.loader = new Csprite.State.StateLoader(this.loaderOpts, this, this.loaderFinish.bind(this));
         this.render.start(this.loader);
+
+        this.render.addListener("selectedfeature", this.selectedfeature.bind(this));
     }
 
+    Scene.prototype = Object.clone(EventEmitter.prototype);
+
     Csprite.extend(Scene.prototype, {
-        /**
-         * @function
-         * @private
-         */
-        createCanvas: function() {
-            var canvas = document.createElement("canvas");
-
-            canvas.width = this.canvasOpts.width;
-            canvas.height = this.canvasOpts.height;
-            this.container.appendChild(canvas);
-            return canvas;
-        },
-
         /**
          * @function
          * @private
          * @description generate three base layers in scene
          */
         generateLayers: function() {
-            var canvasOpts = this.canvasOpts;
-
             this.backgroundLayer = new Csprite.Layer({
-                name: "base-backgroundLayer",
-                canvasOpts: canvasOpts
+                name: "base-backgroundLayer"
             });
             this.addLayer(this.backgroundLayer);
 
 
             this.mainLayer = new Csprite.Layer({
-                name: "base-mainLayer",
-                canvasOpts: canvasOpts
+                name: "base-mainLayer"
             });
             this.addLayer(this.mainLayer);
 
             this.textLayer = new Csprite.Layer({
-                name: "base-textLayer",
-                canvasOpts: canvasOpts
+                name: "base-textLayer"
             });
             this.addLayer(this.textLayer);
         },
@@ -3722,10 +3705,21 @@ if ( ! String.prototype.trimLeft)  {
         /**
          * @function
          * @public
-         * @param {String} name
+         * @param {Feature} feature
          */
         getLayer: function(name) {
             this.layersContainer.getByName(name);
+        },
+
+        /**
+         * @function
+         * @public
+         */
+        getFeature: function(id) {
+            var layerIndex = parseInt(id / 10000),
+                layer = this.layersContainer.layers[layerIndex];
+
+            return layer.getFeature(id);
         },
 
         /**
@@ -3750,6 +3744,10 @@ if ( ! String.prototype.trimLeft)  {
          */
         getLayers: function() {
             return this.layersContainer.getSortedLayers();
+        },
+
+        selectedfeature: function(e) {
+            this.emitEvent("selectedfeature", [e]);
         }
 
     });
@@ -3759,26 +3757,70 @@ if ( ! String.prototype.trimLeft)  {
     * @class
     * @constructor
     */
-    var Render = exports.Render = function(scene) {
+    var Render = exports.Render = function(scene, canvasOpts) {
         this.scene = scene;
-        this.canvas = this.scene.canvas;
-        this.context = this.scene.context;
-        this.state = "";
+
+        this.canvas = this.createCanvas(canvasOpts);
+        this.context = this.canvas.getContext("2d");
+
+        this.selector = this.createSelector(canvasOpts);
+        this.selectorContext = this.selector.getContext("2d");
+
+        this.initEvent();
 
         this.interval = 1000 / Csprite.Const.FPS;
+        this.state = "";
         this.now = "";
         this.then = Date.now();
         this.loop();
     }
 
+    Render.prototype = Object.clone(EventEmitter.prototype);
 
     Render.Const = {};
     Render.Const.Stroke = 1;
     Render.Const.Fill = 2;
     Render.Const.Reset = 3;
 
-
     Csprite.extend(Render.prototype, {
+        /**
+         * @function
+         * @private
+         */
+        createCanvas: function(canvasOpts) {
+            var canvas = document.createElement("canvas");
+
+            canvas.width = canvasOpts.width;
+            canvas.height = canvasOpts.height;
+            this.scene.container.appendChild(canvas);
+            return canvas;
+        },
+
+        /**
+         * @function
+         * @private
+         */
+        initEvent: function() {
+            var canvas = this.canvas;
+
+            canvas.addEventListener("click", this.getFeatureIdFromEvent.bind(this));
+            // canvas.addEventListener("mousemove", this.getFeatureIdFromEvent.bind(this));
+
+        },
+
+        /**
+         * @function
+         * @private
+         */
+        createSelector: function(canvasOpts) {
+            var canvas = document.createElement("canvas");
+
+            canvas.width = canvasOpts.width;
+            canvas.height = canvasOpts.height;
+
+            return canvas;
+        },
+
         /**
          * @function
          * @start
@@ -3889,6 +3931,35 @@ if ( ! String.prototype.trimLeft)  {
          * @function
          * @private
          */
+        setSelectorStyle: function(featureId, style, type) {
+            var hex = this.featureIdToHex(featureId);
+
+            this.selectorContext.globalAlpha = 1;
+
+            if (type == Csprite.Render.Const.Stroke && style['border']) {
+                this.selectorContext.lineWidth = style['border']['borderWidth'] + 2; //extend select range
+                this.selectorContext.strokeStyle = hex;
+            } 
+            if (type == Csprite.Render.Const.Fill) {
+                this.selectorContext.fillStyle = hex;
+            }
+            if (type == Csprite.Render.Const.Reset) {
+                this.selectorContext.globalAlpha = 1;
+                this.selectorContext.lineWidth = 1;
+            }
+
+            if (style['font']) {
+                this.selectorContext.font = style['font'];
+            }
+            if (style['textAlign']) {
+                this.selectorContext.textAlign = style['textAlign'];
+            }
+        },
+
+        /**
+         * @function
+         * @private
+         */
         drawFeature: function(feature) {
             switch (feature.type) {
                 case "Image":
@@ -3924,7 +3995,11 @@ if ( ! String.prototype.trimLeft)  {
 
                 self.setStyle(style);
                 self.context.drawImage(img, style.position.x, style.position.y, width, height);
-                self.setStyle(Csprite.Render.Const.Reset);
+                self.setStyle(style, Csprite.Render.Const.Reset);
+
+                self.setSelectorStyle(feature.id, style, Csprite.Render.Const.Fill);
+                self.selectorContext.fillRect(style.position.x, style.position.y, width, height);
+                self.setSelectorStyle(feature.id, style, Csprite.Render.Const.Reset);
             }
         },
 
@@ -3942,8 +4017,49 @@ if ( ! String.prototype.trimLeft)  {
                 this.setStyle(style, Csprite.Render.Const.Stroke);
                 this.context.strokeText(text, style.position.x, style.position.y);
             }
-            this.setStyle(Csprite.Render.Const.Reset);
-        }
+            this.setStyle(style, Csprite.Render.Const.Reset);
+        },
+
+        /**
+         * @function
+         * @private
+         * @description from openLayers function https://github.com/openlayers/openlayers/blob/master/lib/OpenLayers/Renderer/Canvas.js
+         */
+        featureIdToHex: function(featureId) {
+            var id = featureId; // zero for no feature
+            if (id >= 16777216) {
+                this.hitOverflow = id - 16777215;
+                id = id % 16777216 + 1;
+            }
+            var hex = "000000" + id.toString(16);
+            var len = hex.length;
+            hex = "#" + hex.substring(len-6, len);
+            return hex;
+        },
+
+        /**
+         * @function
+         * @private
+         * @description from openLayers function https://github.com/openlayers/openlayers/blob/master/lib/OpenLayers/Renderer/Canvas.js
+         */
+        getFeatureIdFromEvent: function(e) {
+            var featureId, feature,
+                x = e.layerX,
+                y = e.layerY;
+
+            var data = this.selectorContext.getImageData(x, y, 1, 1).data;
+            if (data[3] === 255) { // antialiased
+                var id = data[2] + (256 * (data[1] + (256 * data[0])));
+                if (id) {
+                    try {
+                        feature = this.scene.getFeature(id);
+                    } catch(err) {
+                    }
+                }
+            }
+
+            this.emitEvent("selectedfeature", [Csprite.extend(e, {feature: feature})]);
+        },
 
    });
 
@@ -4013,7 +4129,7 @@ if ( ! String.prototype.trimLeft)  {
      */
     var LayersContainer = exports.LayersContainer = function(scene) {
         this.layers = [];
-        this.index = -1;
+        this.index = 0;
         this.scene = scene;
     }
 
@@ -4081,7 +4197,6 @@ if ( ! String.prototype.trimLeft)  {
 	var Layer = exports.Layer = function(option) {
 		this.option = option;
 		this.name = option.name;
-		this.scene = scene;
 		this.featuresContainer = new Csprite.FeaturesContainer(this);
 		this.index = 0;
 	}
@@ -4093,6 +4208,16 @@ if ( ! String.prototype.trimLeft)  {
 		 */ 
 		addFeature: function(feature) {
 			this.featuresContainer.add(feature);
+			feature.layer = this;
+			this.generateFeatureId(feature);
+		},
+
+		/**
+		 * @function
+		 * @private
+		 */
+		generateFeatureId: function(feature) {
+			feature.id = this.currentFeatureId++;
 		},
 
 		/**
@@ -4114,6 +4239,21 @@ if ( ! String.prototype.trimLeft)  {
 		/**
 		 * @function
 		 * @public
+		 * @param {int} id
+		 */
+		getFeature: function(id) {
+			var features = this.featuresContainer.features;
+
+			for(var i = 0, len = features.length; i < len; i++) {
+				if (features[i].id == id) {
+					return features[i];
+				}
+			}
+		},
+
+		/**
+		 * @function
+		 * @public
 		 */
 		update: function() {
 			this.featuresContainer.update();
@@ -4125,6 +4265,8 @@ if ( ! String.prototype.trimLeft)  {
 		 */
 		setIndex: function(index) {
 			this.index = index;
+			this.startFeatureId = 10000 * index; //max featurescount each layer , 10000
+			this.currentFeatureId = this.startFeatureId;
 		}
 
 	});

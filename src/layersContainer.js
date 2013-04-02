@@ -6,7 +6,7 @@
      */
     var LayersContainer = exports.LayersContainer = function(scene) {
         this.layers = [];
-        this.index = -1;
+        this.index = 0;
         this.scene = scene;
     }
 

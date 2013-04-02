@@ -56,6 +56,10 @@
 			};
 
 			scene = new Csprite.Scene(sceneOpts, canvasOps, loaderOps);
+
+			scene.addListener("selectedfeature", function(e) {
+				alert(e.feature.id);
+			});
 		</script>
 	</body>
 </html>
