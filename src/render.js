@@ -140,6 +140,17 @@
 
         /**
          * @function
+         * @public
+         * @description convert a layer to a png image 
+         */
+        convertLayerImage: function(layer) {
+            this.reset();
+            this.redrawLayer(layer);
+            Canvas2Image.saveAsPNG(this.canvas);
+        },
+
+        /**
+         * @function
          * @private
          */
         reset: function() {

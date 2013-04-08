@@ -7,6 +7,8 @@ module.exports = function(grunt) {
                 src: [
                         'addin/jst.js',
                         'addin/EventEmitter.js',
+                        'addin/base64.js',
+                        'addin/canvas2image.js',
 
                         'src/core.js',
                         'src/scene.js',

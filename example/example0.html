@@ -2,8 +2,19 @@
 <html>
 	<head>
 		<script src="../build/csprite.js"></script>
+		<script src="http://code.jquery.com/jquery-1.9.1.min.js"></script>
 	</head>
 	<body>
+		<div class="image-area">
+			<ul>
+				<li>name: <input name="imagename"/></li>
+				<li>src: <input name="imagesrc"/></li>
+				<li><a class="submit" href="javascript:">apply</a></li>
+			</ul>
+		</div>
+		<div>
+			<a id="save" href="javascript:">save</a>
+		</div>
 		<div id="csprite" style="position:relative; border:1px solid black; width:900px; height:600px; margin:100px auto;"></div>
 		<script>
 			var sceneOpts,
@@ -57,9 +68,21 @@
 
 			scene = new Csprite.Scene(sceneOpts, canvasOps, loaderOps);
 
-			scene.addListener("selectedfeature", function(e) {
-				alert(e.feature.id);
+			$(".image-area").delegate(".submit", "click", function() {
+				var name = $(".image-area input[name=imagename]")[0].value;
+				var source = $(".image-area input[name=imagesrc]")[0].value;
+				var layer = scene.mainLayer;
+
+				var imageFeature = new Csprite.Feature.Image(source, {position: Csprite.Helper.calcPostion(scene, layer.featuresContainer.features.length)});
+
+				imageFeature.addListener("loaded", function(e) {
+					layer.addFeature(e.target);
+				});
 			});
+
+			$("#save").click(function() {
+				scene.saveImage();
+			})
 		</script>
 	</body>
 </html>

@@ -8,6 +8,8 @@
 		this.animations = [];
 	};
 
+	Feature.prototype = Object.clone(EventEmitter.prototype);
+
 	Csprite.extend(Feature.prototype, {
 		/**
 		 * @function

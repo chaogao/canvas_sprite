@@ -122,8 +122,19 @@
             return this.layersContainer.getSortedLayers();
         },
 
+        /**
+         * @function
+         * @private
+         */
         selectedfeature: function(e) {
             this.emitEvent("selectedfeature", [e]);
+        },
+
+        /**
+         * @function
+         */
+        saveImage: function() {
+            this.render.convertLayerImage(this.mainLayer);
         }
 
     });
