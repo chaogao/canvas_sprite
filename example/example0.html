@@ -2,9 +2,11 @@
 <html>
 	<head>
 		<script src="../build/csprite.js"></script>
+		<script src="../build/swfobject.js"></script>
 		<script src="http://code.jquery.com/jquery-1.9.1.min.js"></script>
 	</head>
 	<body>
+		<div id="swfloader"></div>
 		<div class="image-area">
 			<ul>
 				<li>name: <input name="imagename"/></li>
@@ -82,7 +84,17 @@
 
 			$("#save").click(function() {
 				scene.saveImage();
-			})
+			});
+
+			swfobject.embedSWF("../build/convertBase64.swf", "swfloader", "1", "1", "11.1.0");
+
+			window.Imageloaded = function(data) {
+				console.log(data);
+			};
+
+			window.onload = function() {
+				var loader = document.getElementById("swfloader").getImage("http://a.xnimg.cn/imgpro/icons/minigroup/icon_25.gif");
+			}
 		</script>
 	</body>
 </html>
