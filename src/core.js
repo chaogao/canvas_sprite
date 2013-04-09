@@ -21,8 +21,20 @@
 
 	};
 
+	/**
+	 * @function
+	 * @public
+	 */
+	Csprite.init = function() {
+		var element = document.createElement("div");
+		element.id = "swfloader";
+		document.body.appendChild(element);
+		swfobject.embedSWF(Csprite.Const.flashUrl, "swfloader", "1", "1", "11.1.0");
+	};
+
 	Csprite.Const = {
-		FPS: 24
+		FPS: 24,
+		flashUrl: '../build/convertBase64.swf'
 	};
 
 	/**
@@ -61,4 +73,6 @@
 		version: '0.1.0',
 		author: 'chao.gao',
 	});
+
+	Csprite.init();
 })();

@@ -20,7 +20,14 @@
             border: "2px solid black",
             position: Csprite.Helper.centerPosition(this.scene)
         });
+        this.flashLoader = document.getElementById("swfloader");
         this.load();
+    };
+
+    window.Imageloaded = function(data) {
+        if (window._imageLoaded) {
+            window._imageLoaded(data);
+        }
     };
 
 
@@ -46,20 +53,39 @@
             this.mode = StateLoader.Mode.Loading;
 
             resources.forEach(function(resource, index) {
-                var img = new Image();
-                img.onload = function () {
-                    self.onload({
-                        img: img,
-                        index: img.index
-                    });
-                    self.loadedCount++;
-                    if (self.loadedCount == (resources.length - 1)) {
-                    	self.mode = StateLoader.Mode.Loaded;
+                self.flashLoader.getImage(resource.src);
+
+                var cb = (function() {
+                    var i = index;
+                    return function(data) {
+                        console.log(data + '-----------------------' + i);
                     }
-                }
-                img.src = resource.src;
-                img.index = index;
+                })();
+
+                self.registeCb(cb);
+
+                // var img = new Image();
+                // img.onload = function () {
+                //     self.onload({
+                //         img: img,
+                //         index: img.index
+                //     });
+                //     self.loadedCount++;
+                //     if (self.loadedCount == (resources.length - 1)) {
+                //     	self.mode = StateLoader.Mode.Loaded;
+                //     }
+                // }
+                // img.src = resource.src;
+                // img.index = index;
             });
+        },
+
+        /**
+         * @function
+         * @private
+         */
+        registeCb: function(cb) {
+            window._imageLoaded = cb;
         },
 
         /**

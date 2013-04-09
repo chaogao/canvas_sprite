@@ -1,7 +1,6 @@
 <!DOCTYPE>
 <html>
 	<head>
-		<script src="../build/csprite.js"></script>
 		<script src="../build/swfobject.js"></script>
 		<script src="http://code.jquery.com/jquery-1.9.1.min.js"></script>
 	</head>
@@ -18,83 +17,76 @@
 			<a id="save" href="javascript:">save</a>
 		</div>
 		<div id="csprite" style="position:relative; border:1px solid black; width:900px; height:600px; margin:100px auto;"></div>
+		<script src="../build/csprite.js"></script>
 		<script>
-			var sceneOpts,
-				canvasOps,
-				loaderOps,
-				scene;
+			setTimeout(function() {
+				var sceneOpts,
+					canvasOps,
+					loaderOps,
+					scene;
 
-			sceneOpts = {
-				container: "csprite",
-				tile: {
-					width: 20,
-					height: 20,
-					paddingX: 10,
-					paddingY: 10
-				}
-			};
+				sceneOpts = {
+					container: "csprite",
+					tile: {
+						width: 20,
+						height: 20,
+						paddingX: 10,
+						paddingY: 10
+					}
+				};
 
-			canvasOps = {
-				width: 900,
-				height: 600
-			};
+				canvasOps = {
+					width: 900,
+					height: 600
+				};
 
-			loaderOps = {
-				resources: [
-					{ src: "http://a.xnimg.cn/imgpro/icons/minigroup/icon_1.gif" },
-					{ src: "http://a.xnimg.cn/imgpro/icons/minigroup/icon_2.gif" },
-					{ src: "http://a.xnimg.cn/imgpro/icons/minigroup/icon_3.gif" },
-					{ src: "http://a.xnimg.cn/imgpro/icons/minigroup/icon_4.gif" },
-					{ src: "http://a.xnimg.cn/imgpro/icons/minigroup/icon_5.gif" },
-					{ src: "http://a.xnimg.cn/imgpro/icons/minigroup/icon_7.gif" },
-					{ src: "http://a.xnimg.cn/imgpro/icons/minigroup/icon_8.gif" },
-					{ src: "http://a.xnimg.cn/imgpro/icons/minigroup/icon_9.gif" },
-					{ src: "http://a.xnimg.cn/imgpro/icons/minigroup/icon_10.gif" },
-					{ src: "http://a.xnimg.cn/imgpro/icons/minigroup/icon_11.gif" },
-					{ src: "http://a.xnimg.cn/imgpro/icons/minigroup/icon_12.gif" },
-					{ src: "http://a.xnimg.cn/imgpro/icons/minigroup/icon_13.gif" },
-					{ src: "http://a.xnimg.cn/imgpro/icons/minigroup/icon_14.gif" },
-					{ src: "http://a.xnimg.cn/imgpro/icons/minigroup/icon_15.gif" },
-					{ src: "http://a.xnimg.cn/imgpro/icons/minigroup/icon_16.gif" },
-					{ src: "http://a.xnimg.cn/imgpro/icons/minigroup/icon_17.gif" },
-					{ src: "http://a.xnimg.cn/imgpro/icons/minigroup/icon_18.gif" },
-					{ src: "http://a.xnimg.cn/imgpro/icons/minigroup/icon_19.gif" },
-					{ src: "http://a.xnimg.cn/imgpro/icons/minigroup/icon_20.gif" },
-					{ src: "http://a.xnimg.cn/imgpro/icons/minigroup/icon_21.gif" },
-					{ src: "http://a.xnimg.cn/imgpro/icons/minigroup/icon_22.gif" },
-					{ src: "http://a.xnimg.cn/imgpro/icons/minigroup/icon_23.gif" },
-					{ src: "http://a.xnimg.cn/imgpro/icons/minigroup/icon_24.gif" },
-					{ src: "http://a.xnimg.cn/imgpro/icons/minigroup/icon_25.gif" }
-				]
-			};
+				loaderOps = {
+					resources: [
+						{ src: "http://a.xnimg.cn/imgpro/icons/minigroup/icon_1.gif" },
+						{ src: "http://a.xnimg.cn/imgpro/icons/minigroup/icon_2.gif" },
+						{ src: "http://a.xnimg.cn/imgpro/icons/minigroup/icon_3.gif" },
+						{ src: "http://a.xnimg.cn/imgpro/icons/minigroup/icon_4.gif" },
+						{ src: "http://a.xnimg.cn/imgpro/icons/minigroup/icon_5.gif" },
+						{ src: "http://a.xnimg.cn/imgpro/icons/minigroup/icon_7.gif" },
+						{ src: "http://a.xnimg.cn/imgpro/icons/minigroup/icon_8.gif" },
+						{ src: "http://a.xnimg.cn/imgpro/icons/minigroup/icon_9.gif" },
+						{ src: "http://a.xnimg.cn/imgpro/icons/minigroup/icon_10.gif" },
+						{ src: "http://a.xnimg.cn/imgpro/icons/minigroup/icon_11.gif" },
+						{ src: "http://a.xnimg.cn/imgpro/icons/minigroup/icon_12.gif" },
+						{ src: "http://a.xnimg.cn/imgpro/icons/minigroup/icon_13.gif" },
+						{ src: "http://a.xnimg.cn/imgpro/icons/minigroup/icon_14.gif" },
+						{ src: "http://a.xnimg.cn/imgpro/icons/minigroup/icon_15.gif" },
+						{ src: "http://a.xnimg.cn/imgpro/icons/minigroup/icon_16.gif" },
+						{ src: "http://a.xnimg.cn/imgpro/icons/minigroup/icon_17.gif" },
+						{ src: "http://a.xnimg.cn/imgpro/icons/minigroup/icon_18.gif" },
+						{ src: "http://a.xnimg.cn/imgpro/icons/minigroup/icon_19.gif" },
+						{ src: "http://a.xnimg.cn/imgpro/icons/minigroup/icon_20.gif" },
+						{ src: "http://a.xnimg.cn/imgpro/icons/minigroup/icon_21.gif" },
+						{ src: "http://a.xnimg.cn/imgpro/icons/minigroup/icon_22.gif" },
+						{ src: "http://a.xnimg.cn/imgpro/icons/minigroup/icon_23.gif" },
+						{ src: "http://a.xnimg.cn/imgpro/icons/minigroup/icon_24.gif" },
+						{ src: "http://a.xnimg.cn/imgpro/icons/minigroup/icon_25.gif" }
+					]
+				};
 
-			scene = new Csprite.Scene(sceneOpts, canvasOps, loaderOps);
+				scene = new Csprite.Scene(sceneOpts, canvasOps, loaderOps);
 
-			$(".image-area").delegate(".submit", "click", function() {
-				var name = $(".image-area input[name=imagename]")[0].value;
-				var source = $(".image-area input[name=imagesrc]")[0].value;
-				var layer = scene.mainLayer;
+				$(".image-area").delegate(".submit", "click", function() {
+					var name = $(".image-area input[name=imagename]")[0].value;
+					var source = $(".image-area input[name=imagesrc]")[0].value;
+					var layer = scene.mainLayer;
 
-				var imageFeature = new Csprite.Feature.Image(source, {position: Csprite.Helper.calcPostion(scene, layer.featuresContainer.features.length)});
+					var imageFeature = new Csprite.Feature.Image(source, {position: Csprite.Helper.calcPostion(scene, layer.featuresContainer.features.length)});
 
-				imageFeature.addListener("loaded", function(e) {
-					layer.addFeature(e.target);
+					imageFeature.addListener("loaded", function(e) {
+						layer.addFeature(e.target);
+					});
 				});
-			});
 
-			$("#save").click(function() {
-				scene.saveImage();
-			});
-
-			swfobject.embedSWF("../build/convertBase64.swf", "swfloader", "1", "1", "11.1.0");
-
-			window.Imageloaded = function(data) {
-				console.log(data);
-			};
-
-			window.onload = function() {
-				var loader = document.getElementById("swfloader").getImage("http://a.xnimg.cn/imgpro/icons/minigroup/icon_25.gif");
-			}
+				$("#save").click(function() {
+					scene.saveImage();
+				});
+			}, 3000);
 		</script>
 	</body>
 </html>

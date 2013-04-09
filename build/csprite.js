@@ -3929,8 +3929,20 @@ var Canvas2Image = (function() {
 
 	};
 
+	/**
+	 * @function
+	 * @public
+	 */
+	Csprite.init = function() {
+		var element = document.createElement("div");
+		element.id = "swfloader";
+		document.body.appendChild(element);
+		swfobject.embedSWF(Csprite.Const.flashUrl, "swfloader", "1", "1", "11.1.0");
+	};
+
 	Csprite.Const = {
-		FPS: 24
+		FPS: 24,
+		flashUrl: '../build/convertBase64.swf'
 	};
 
 	/**
@@ -3969,6 +3981,8 @@ var Canvas2Image = (function() {
 		version: '0.1.0',
 		author: 'chao.gao',
 	});
+
+	Csprite.init();
 })();
 /**
  * @require core 
@@ -5081,7 +5095,14 @@ var Canvas2Image = (function() {
             border: "2px solid black",
             position: Csprite.Helper.centerPosition(this.scene)
         });
+        this.flashLoader = document.getElementById("swfloader");
         this.load();
+    };
+
+    window.Imageloaded = function(data) {
+        if (window._imageLoaded) {
+            window._imageLoaded(data);
+        }
     };
 
 
@@ -5107,20 +5128,39 @@ var Canvas2Image = (function() {
             this.mode = StateLoader.Mode.Loading;
 
             resources.forEach(function(resource, index) {
-                var img = new Image();
-                img.onload = function () {
-                    self.onload({
-                        img: img,
-                        index: img.index
-                    });
-                    self.loadedCount++;
-                    if (self.loadedCount == (resources.length - 1)) {
-                    	self.mode = StateLoader.Mode.Loaded;
+                self.flashLoader.getImage(resource.src);
+
+                var cb = (function() {
+                    var i = index;
+                    return function(data) {
+                        console.log(data + '-----------------------' + i);
                     }
-                }
-                img.src = resource.src;
-                img.index = index;
+                })();
+
+                self.registeCb(cb);
+
+                // var img = new Image();
+                // img.onload = function () {
+                //     self.onload({
+                //         img: img,
+                //         index: img.index
+                //     });
+                //     self.loadedCount++;
+                //     if (self.loadedCount == (resources.length - 1)) {
+                //     	self.mode = StateLoader.Mode.Loaded;
+                //     }
+                // }
+                // img.src = resource.src;
+                // img.index = index;
             });
+        },
+
+        /**
+         * @function
+         * @private
+         */
+        registeCb: function(cb) {
+            window._imageLoaded = cb;
         },
 
         /**
