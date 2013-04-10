@@ -3818,7 +3818,8 @@ var Canvas2Image = (function() {
 
 	// sends the generated file to the client
 	var saveFile = function(strData) {
-		document.location.href = strData;
+		// document.location.href = strData;
+		window.open(strData);
 	}
 
 	var makeDataURI = function(strData, strMime) {
@@ -3850,7 +3851,7 @@ var Canvas2Image = (function() {
 
 	return {
 
-		saveAsPNG : function(oCanvas, bReturnImg, iWidth, iHeight) {
+		saveAsPNG : function(oCanvas, bReturnImg, bReturnData, iWidth, iHeight) {
 			if (!bHasDataURL) {
 				return false;
 			}
@@ -3858,8 +3859,11 @@ var Canvas2Image = (function() {
 			var strData = oScaledCanvas.toDataURL("image/png");
 			if (bReturnImg) {
 				return makeImageObject(strData);
+			} else if (bReturnData) {
+				return strData;
 			} else {
-				saveFile(strData.replace("image/png", strDownloadMime));
+				// saveFile(strData.replace("image/png", strDownloadMime));
+				saveFile(strData);
 			}
 			return true;
 		},
@@ -4120,7 +4124,7 @@ var Canvas2Image = (function() {
          * @function
          */
         saveImage: function() {
-            this.render.convertLayerImage(this.mainLayer);
+            return this.render.convertLayerImage(this.mainLayer);
         }
 
     });
@@ -4273,7 +4277,7 @@ var Canvas2Image = (function() {
         convertLayerImage: function(layer) {
             this.reset();
             this.redrawLayer(layer);
-            Canvas2Image.saveAsPNG(this.canvas);
+            return Canvas2Image.saveAsPNG(this.canvas, '', true);
         },
 
         /**
@@ -5096,16 +5100,16 @@ var Canvas2Image = (function() {
             position: Csprite.Helper.centerPosition(this.scene)
         });
         this.flashLoader = document.getElementById("swfloader");
+        //注册flash的回调函数
+        this.registeCb(this.imageLoaded);
         this.load();
     };
 
-    window.Imageloaded = function(data) {
+    window.Imageloaded = function(data, index) {
         if (window._imageLoaded) {
-            window._imageLoaded(data);
+            window._imageLoaded(data, index);
         }
     };
-
-
 
     StateLoader.Mode = {};
     StateLoader.Mode.ToLoad = 0;
@@ -5128,30 +5132,7 @@ var Canvas2Image = (function() {
             this.mode = StateLoader.Mode.Loading;
 
             resources.forEach(function(resource, index) {
-                self.flashLoader.getImage(resource.src);
-
-                var cb = (function() {
-                    var i = index;
-                    return function(data) {
-                        console.log(data + '-----------------------' + i);
-                    }
-                })();
-
-                self.registeCb(cb);
-
-                // var img = new Image();
-                // img.onload = function () {
-                //     self.onload({
-                //         img: img,
-                //         index: img.index
-                //     });
-                //     self.loadedCount++;
-                //     if (self.loadedCount == (resources.length - 1)) {
-                //     	self.mode = StateLoader.Mode.Loaded;
-                //     }
-                // }
-                // img.src = resource.src;
-                // img.index = index;
+                self.flashLoader.getImage(resource.src, index);
             });
         },
 
@@ -5159,8 +5140,28 @@ var Canvas2Image = (function() {
          * @function
          * @private
          */
-        registeCb: function(cb) {
-            window._imageLoaded = cb;
+        registeCb: function(cb, obj) {
+            obj = obj || this;
+            window._imageLoaded = cb.bind(obj);
+        },
+
+        /**
+         * @function
+         * @private
+         * @description flash 远程获取 base64 图片编码后的回调函数
+         */
+        imageLoaded: function(data, index) {
+            var img = new Image();
+            
+            img.src = ['data:image/png;base64', data].join(",");
+            this.onload({
+                img: img,
+                index: index
+            });
+            this.loadedCount++;
+            if (this.loadedCount == (this.loaderOpts.resources.length - 1)) {
+                this.mode = StateLoader.Mode.Loaded;
+            }
         },
 
         /**

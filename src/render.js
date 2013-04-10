@@ -146,7 +146,7 @@
         convertLayerImage: function(layer) {
             this.reset();
             this.redrawLayer(layer);
-            Canvas2Image.saveAsPNG(this.canvas);
+            return Canvas2Image.saveAsPNG(this.canvas, '', true);
         },
 
         /**

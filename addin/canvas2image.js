@@ -145,7 +145,8 @@ var Canvas2Image = (function() {
 
 	// sends the generated file to the client
 	var saveFile = function(strData) {
-		document.location.href = strData;
+		// document.location.href = strData;
+		window.open(strData);
 	}
 
 	var makeDataURI = function(strData, strMime) {
@@ -177,7 +178,7 @@ var Canvas2Image = (function() {
 
 	return {
 
-		saveAsPNG : function(oCanvas, bReturnImg, iWidth, iHeight) {
+		saveAsPNG : function(oCanvas, bReturnImg, bReturnData, iWidth, iHeight) {
 			if (!bHasDataURL) {
 				return false;
 			}
@@ -185,8 +186,11 @@ var Canvas2Image = (function() {
 			var strData = oScaledCanvas.toDataURL("image/png");
 			if (bReturnImg) {
 				return makeImageObject(strData);
+			} else if (bReturnData) {
+				return strData;
 			} else {
-				saveFile(strData.replace("image/png", strDownloadMime));
+				// saveFile(strData.replace("image/png", strDownloadMime));
+				saveFile(strData);
 			}
 			return true;
 		},

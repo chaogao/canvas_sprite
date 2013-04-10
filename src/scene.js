@@ -134,7 +134,7 @@
          * @function
          */
         saveImage: function() {
-            this.render.convertLayerImage(this.mainLayer);
+            return this.render.convertLayerImage(this.mainLayer);
         }
 
     });

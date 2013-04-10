@@ -15,6 +15,7 @@
 		</div>
 		<div>
 			<a id="save" href="javascript:">save</a>
+			<a id="download" href="javascript:" target="_blank" download="mypic.png">download</a>
 		</div>
 		<div id="csprite" style="position:relative; border:1px solid black; width:900px; height:600px; margin:100px auto;"></div>
 		<script src="../build/csprite.js"></script>
@@ -84,7 +85,8 @@
 				});
 
 				$("#save").click(function() {
-					scene.saveImage();
+					var data = scene.saveImage();
+					$("#download").prop("href", data);
 				});
 			}, 3000);
 		</script>

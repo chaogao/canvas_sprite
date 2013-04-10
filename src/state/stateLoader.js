@@ -21,16 +21,16 @@
             position: Csprite.Helper.centerPosition(this.scene)
         });
         this.flashLoader = document.getElementById("swfloader");
+        //注册flash的回调函数
+        this.registeCb(this.imageLoaded);
         this.load();
     };
 
-    window.Imageloaded = function(data) {
+    window.Imageloaded = function(data, index) {
         if (window._imageLoaded) {
-            window._imageLoaded(data);
+            window._imageLoaded(data, index);
         }
     };
-
-
 
     StateLoader.Mode = {};
     StateLoader.Mode.ToLoad = 0;
@@ -53,30 +53,7 @@
             this.mode = StateLoader.Mode.Loading;
 
             resources.forEach(function(resource, index) {
-                self.flashLoader.getImage(resource.src);
-
-                var cb = (function() {
-                    var i = index;
-                    return function(data) {
-                        console.log(data + '-----------------------' + i);
-                    }
-                })();
-
-                self.registeCb(cb);
-
-                // var img = new Image();
-                // img.onload = function () {
-                //     self.onload({
-                //         img: img,
-                //         index: img.index
-                //     });
-                //     self.loadedCount++;
-                //     if (self.loadedCount == (resources.length - 1)) {
-                //     	self.mode = StateLoader.Mode.Loaded;
-                //     }
-                // }
-                // img.src = resource.src;
-                // img.index = index;
+                self.flashLoader.getImage(resource.src, index);
             });
         },
 
@@ -84,8 +61,28 @@
          * @function
          * @private
          */
-        registeCb: function(cb) {
-            window._imageLoaded = cb;
+        registeCb: function(cb, obj) {
+            obj = obj || this;
+            window._imageLoaded = cb.bind(obj);
+        },
+
+        /**
+         * @function
+         * @private
+         * @description flash 远程获取 base64 图片编码后的回调函数
+         */
+        imageLoaded: function(data, index) {
+            var img = new Image();
+            
+            img.src = ['data:image/png;base64', data].join(",");
+            this.onload({
+                img: img,
+                index: index
+            });
+            this.loadedCount++;
+            if (this.loadedCount == (this.loaderOpts.resources.length - 1)) {
+                this.mode = StateLoader.Mode.Loaded;
+            }
         },
 
         /**
