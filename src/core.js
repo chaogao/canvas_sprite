@@ -25,11 +25,11 @@
 	 * @function
 	 * @public
 	 */
-	Csprite.init = function() {
+	Csprite.init = function(flashUrl) {
 		var element = document.createElement("div");
 		element.id = "swfloader";
 		document.body.appendChild(element);
-		swfobject.embedSWF(Csprite.Const.flashUrl, "swfloader", "1", "1", "11.1.0");
+		swfobject.embedSWF(flashUrl || Csprite.Const.flashUrl, "swfloader", "1", "1", "11.1.0");
 	};
 
 	Csprite.Const = {
@@ -73,6 +73,4 @@
 		version: '0.1.0',
 		author: 'chao.gao',
 	});
-
-	Csprite.init();
 })();

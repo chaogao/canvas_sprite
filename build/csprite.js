@@ -3937,11 +3937,11 @@ var Canvas2Image = (function() {
 	 * @function
 	 * @public
 	 */
-	Csprite.init = function() {
+	Csprite.init = function(flashUrl) {
 		var element = document.createElement("div");
 		element.id = "swfloader";
 		document.body.appendChild(element);
-		swfobject.embedSWF(Csprite.Const.flashUrl, "swfloader", "1", "1", "11.1.0");
+		swfobject.embedSWF(flashUrl || Csprite.Const.flashUrl, "swfloader", "1", "1", "11.1.0");
 	};
 
 	Csprite.Const = {
@@ -3985,8 +3985,6 @@ var Canvas2Image = (function() {
 		version: '0.1.0',
 		author: 'chao.gao',
 	});
-
-	Csprite.init();
 })();
 /**
  * @require core 
@@ -5159,7 +5157,7 @@ var Canvas2Image = (function() {
                 index: index
             });
             this.loadedCount++;
-            if (this.loadedCount == (this.loaderOpts.resources.length - 1)) {
+            if (this.loadedCount == (this.loaderOpts.resources.length)) {
                 this.mode = StateLoader.Mode.Loaded;
             }
         },

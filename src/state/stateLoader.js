@@ -80,7 +80,7 @@
                 index: index
             });
             this.loadedCount++;
-            if (this.loadedCount == (this.loaderOpts.resources.length - 1)) {
+            if (this.loadedCount == (this.loaderOpts.resources.length)) {
                 this.mode = StateLoader.Mode.Loaded;
             }
         },
